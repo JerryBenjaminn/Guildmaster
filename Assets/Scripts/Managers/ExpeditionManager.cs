@@ -19,7 +19,7 @@ namespace Guildmaster
     ///   Collect(expeditionId)                      - reveals outcome, applies rewards/injuries/deaths.
     ///   OnExpeditionCollected                      - event fired on collect (UI/legacy hook).
     /// </summary>
-    public class ExpeditionManager : Singleton<ExpeditionManager>
+    public partial class ExpeditionManager : Singleton<ExpeditionManager>
     {
         private BalanceConfig _balance;
         private CurrentData _current;
