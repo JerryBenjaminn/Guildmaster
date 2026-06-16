@@ -115,20 +115,74 @@ namespace Guildmaster
         public string id;
         public string displayName;
         public string classId;
+        public string portraitId;        // art ref; no art authored in MVP
         public int level = 1;
         public int xp = 0;
         public int generation = 1;
         public string familyName;
         public AdventurerStatus status = AdventurerStatus.Healthy;
+        public InjurySeverity injurySeverity = InjurySeverity.None;
 
-        // Snapshot of computed stats (class + level + bloodline at creation).
+        // Cached DERIVED stats (class@level + bloodline + gear). Recomputed by
+        // StatCalculator via AdventurerManager whenever an input changes; not a
+        // per-frame cost. Read by ExpeditionManager for team power.
         public StatBlock stats = new StatBlock();
 
-        public List<string> equippedItemIds = new List<string>();
+        // Real, assignable equipment slots (gear effects on stats land in task 05).
+        public EquipmentSlots equipment = new EquipmentSlots();
+
+        // Assigned abilities (capacity = class.AbilitySlotsAtLevel(level)).
         public List<string> abilityIds = new List<string>();
 
         // For injury recovery timing (D2: recovery has NO offline cap).
         public long injuryHealAtTicksUtc = 0;
+    }
+
+    /// <summary>
+    /// The four real equipment slots (GEAR_TALENT_SPEC B1). Stores item ids per
+    /// slot; assignment is real now, stat effects arrive in task 05.
+    /// </summary>
+    [Serializable]
+    public class EquipmentSlots
+    {
+        public string weaponItemId;
+        public string armorItemId;
+        public string accessory1ItemId;
+        public string accessory2ItemId;
+
+        public string Get(ItemSlot slot)
+        {
+            switch (slot)
+            {
+                case ItemSlot.Weapon: return weaponItemId;
+                case ItemSlot.Armor: return armorItemId;
+                case ItemSlot.Accessory1: return accessory1ItemId;
+                case ItemSlot.Accessory2: return accessory2ItemId;
+                default: return null;
+            }
+        }
+
+        public void Set(ItemSlot slot, string itemId)
+        {
+            switch (slot)
+            {
+                case ItemSlot.Weapon: weaponItemId = itemId; break;
+                case ItemSlot.Armor: armorItemId = itemId; break;
+                case ItemSlot.Accessory1: accessory1ItemId = itemId; break;
+                case ItemSlot.Accessory2: accessory2ItemId = itemId; break;
+            }
+        }
+
+        /// <summary>Non-empty equipped item ids (for inheritance, etc.).</summary>
+        public List<string> AllItemIds()
+        {
+            var list = new List<string>();
+            if (!string.IsNullOrEmpty(weaponItemId)) list.Add(weaponItemId);
+            if (!string.IsNullOrEmpty(armorItemId)) list.Add(armorItemId);
+            if (!string.IsNullOrEmpty(accessory1ItemId)) list.Add(accessory1ItemId);
+            if (!string.IsNullOrEmpty(accessory2ItemId)) list.Add(accessory2ItemId);
+            return list;
+        }
     }
 
     /// <summary>

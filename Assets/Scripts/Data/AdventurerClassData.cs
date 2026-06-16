@@ -18,11 +18,22 @@ namespace Guildmaster
 
         public ClassTier tier = ClassTier.Base;
 
-        [Tooltip("Base stats at level 1. Magnitudes are content, not balance constants.")]
-        public StatBlock baseStats = new StatBlock(100, 0, 10, 10, 5);
+        [Tooltip("Base stats at level 1 (HP, Mana, Attack, MagicPower, Defense, Speed, Crit). Content, not balance constants.")]
+        public StatBlock baseStats = new StatBlock(100, 0, 10, 0, 10, 10, 5);
 
         [Tooltip("Stat growth applied per level (content).")]
-        public StatBlock statsPerLevel = new StatBlock(10, 0, 2, 2, 1);
+        public StatBlock statsPerLevel = new StatBlock(10, 0, 2, 0, 2, 1, 1);
+
+        [Header("Ability slots (per-class config, Task02 §1)")]
+        [Tooltip("Levels at which this class gains an ability slot. Slot count at a level = entries <= that level.")]
+        public List<int> abilitySlotUnlockLevels = new List<int> { 1, 3, 6, 10 };
+
+        [Tooltip("Class passive ability (referenced by id). Optional; abilities are authored later.")]
+        public string passiveAbilityId;
+        [TextArea] public string passiveNote;
+
+        [Tooltip("Hint for the kind of starting gear this class favours (display/UX only for now).")]
+        public string startingGearHint;
 
         [Header("Unlock requirements (Hybrid/Legendary only)")]
         [Tooltip("Lineage composition required to unlock this class, e.g. need N ancestors of class X. Empty for base classes.")]
@@ -30,6 +41,17 @@ namespace Guildmaster
 
         [Tooltip("Signature abilities this class tends to carry (referenced by id).")]
         public List<string> signatureAbilityIds = new List<string>();
+
+        /// <summary>Number of ability slots unlocked at a given level.</summary>
+        public int AbilitySlotsAtLevel(int level)
+        {
+            int count = 0;
+            for (int i = 0; i < abilitySlotUnlockLevels.Count; i++)
+            {
+                if (abilitySlotUnlockLevels[i] <= level) count++;
+            }
+            return count;
+        }
 
         public StatBlock StatsAtLevel(int level)
         {

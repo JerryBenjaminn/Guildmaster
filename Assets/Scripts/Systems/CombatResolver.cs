@@ -21,7 +21,9 @@ namespace Guildmaster
             return s.hp * cfg.powerPerHp
                  + s.mana * cfg.powerPerMana
                  + s.attack * cfg.powerPerAttack
+                 + s.magicPower * cfg.powerPerMagicPower
                  + s.defense * cfg.powerPerDefense
+                 + s.speed * cfg.powerPerSpeed
                  + s.crit * cfg.powerPerCrit;
         }
 

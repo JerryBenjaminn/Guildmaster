@@ -18,7 +18,7 @@ namespace Guildmaster
         [Tooltip("Power this enemy adds to its dungeon's effective difficulty.")]
         public float powerContribution = 10f;
 
-        public StatBlock stats = new StatBlock(50, 0, 8, 5, 0);
+        public StatBlock stats = new StatBlock(50, 0, 8, 0, 5, 5, 0);
 
         public bool isBoss = false;
     }

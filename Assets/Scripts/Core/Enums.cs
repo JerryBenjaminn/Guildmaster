@@ -21,8 +21,15 @@ namespace Guildmaster
     /// Auto-resolve outcome bands (CLAUDE.md §5). Flawless -> Catastrophe.
     public enum OutcomeBand { Flawless, Success, CloseCall, Failure, Catastrophe }
 
-    /// Adventurer lifecycle status (UI_SPEC §2 / Roster colour coding).
-    public enum AdventurerStatus { Healthy, Injured, OnExpedition, Training, DeadPending, Dead }
+    /// Adventurer lifecycle status (UI_SPEC §2 / Roster colour coding). Injury
+    /// severity (Minor/Major/Critical) is carried separately in
+    /// <see cref="InjurySeverity"/> so the transition graph stays simple.
+    /// DeadPending = died, awaiting the legacy/class-choice moment (UI_SPEC §4.3);
+    /// Dead = processed into the Hall of Fame.
+    public enum AdventurerStatus { Healthy, Injured, OnExpedition, Training, Retired, DeadPending, Dead }
+
+    /// Severity of an Injured adventurer's injury (drives recovery time later).
+    public enum InjurySeverity { None, Minor, Major, Critical }
 
     /// Special-effect categories for gear (GEAR_TALENT_SPEC B3). All resolve to
     /// auto-resolve math modifiers.
@@ -31,8 +38,8 @@ namespace Guildmaster
     /// Flat-list talent effects for MVP (GEAR_TALENT_SPEC C3 light layer).
     public enum TalentEffectType { ExpeditionSuccess, GoldGain, InjuryRecovery, RosterSlot, HeirStartLevel }
 
-    /// Core stat axes feeding the combat math (GEAR_TALENT_SPEC B2).
-    public enum StatType { HP, Mana, Attack, Defense, Crit }
+    /// Core stat axes feeding the combat math (GEAR_TALENT_SPEC B2 / Task02 set).
+    public enum StatType { HP, Mana, Attack, MagicPower, Defense, Speed, Crit }
 
     /// The five primary navigation tabs (UI_SPEC §3).
     public enum GameTab { Guild, Roster, Quests, Craft, Hall }

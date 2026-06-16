@@ -43,7 +43,10 @@ namespace Guildmaster
         public float powerPerHp = 0.1f;
         public float powerPerMana = 0.1f;
         public float powerPerAttack = 1f;
+        public float powerPerMagicPower = 1f;
         public float powerPerDefense = 1f;
+        [Tooltip("SEED: Speed has no auto-resolve role yet (reserved for future turn-order); weight 0 so it doesn't distort combat. Tune when a use exists.")]
+        public float powerPerSpeed = 0f;
         public float powerPerCrit = 1f;
 
         [Header("Success formula (SEED — feel)")]
@@ -79,7 +82,31 @@ namespace Guildmaster
             new ExpeditionTier("Overnight",720,   100),
         };
 
+        [Header("Roster (SEED — feel; cap is a frame-ish design number)")]
+        [Tooltip("SEED: gold cost to recruit a new blank-slate Gen-1 adventurer.")]
+        public int recruitCost = 100;
+        [Tooltip("SEED/FRAME: roster slots before any Barracks upgrades.")]
+        public int baseRosterCap = 5;
+        [Tooltip("SEED: extra roster slots granted per Barracks facility level.")]
+        public int rosterSlotsPerBarracksLevel = 2;
+        [Tooltip("Facility id whose level expands the roster cap.")]
+        public string barracksFacilityId = "barracks";
+
+        [Header("Leveling (SEED — feel; max level is a design FRAME)")]
+        [Tooltip("FRAME: adventurers level 1..maxLevel (Task02 = 20).")]
+        public int maxLevel = 20;
+        [Tooltip("SEED: XP needed for level L = round(xpCurveBase * L^xpCurveExponent).")]
+        public float xpCurveBase = 100f;
+        public float xpCurveExponent = 1.5f;
+
         public float OfflineCapSeconds => offlineCapHours * 3600f;
+
+        /// <summary>SEED curve: XP required to advance FROM <paramref name="level"/> to the next.</summary>
+        public int XpToNext(int level)
+        {
+            if (level < 1) level = 1;
+            return Mathf.RoundToInt(xpCurveBase * Mathf.Pow(level, xpCurveExponent));
+        }
     }
 
     /// <summary>One idle duration option and its gold/hr (CLAUDE.md §7, UI_SPEC §4.2).</summary>

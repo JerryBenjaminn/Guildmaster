@@ -3,11 +3,12 @@ using System;
 namespace Guildmaster
 {
     /// <summary>
-    /// A bundle of the core combat stats. Pure data: holds values and supports
-    /// addition so contributions (class base + level + gear + bloodline) can be
-    /// summed. The conversion of stats into a single "Power" number is a balance
-    /// concern and lives in <see cref="CombatResolver"/> (weights come from
-    /// BalanceConfig), NOT here — keep this struct free of balance numbers.
+    /// A bundle of the core combat stats (GDD/Task02 stat set: HP, Mana, Attack,
+    /// Magic Power, Defense, Speed, Crit). Pure data: holds values and supports
+    /// addition so contributions (class base + level + bloodline + gear) can be
+    /// summed. Converting stats into a single "Power" number is a balance concern
+    /// and lives in <see cref="CombatResolver"/> (weights from BalanceConfig) —
+    /// keep this struct free of balance numbers.
     /// </summary>
     [Serializable]
     public struct StatBlock
@@ -15,15 +16,19 @@ namespace Guildmaster
         public int hp;
         public int mana;
         public int attack;
+        public int magicPower;
         public int defense;
+        public int speed;
         public int crit;
 
-        public StatBlock(int hp, int mana, int attack, int defense, int crit)
+        public StatBlock(int hp, int mana, int attack, int magicPower, int defense, int speed, int crit)
         {
             this.hp = hp;
             this.mana = mana;
             this.attack = attack;
+            this.magicPower = magicPower;
             this.defense = defense;
+            this.speed = speed;
             this.crit = crit;
         }
 
@@ -33,7 +38,9 @@ namespace Guildmaster
                 a.hp + b.hp,
                 a.mana + b.mana,
                 a.attack + b.attack,
+                a.magicPower + b.magicPower,
                 a.defense + b.defense,
+                a.speed + b.speed,
                 a.crit + b.crit);
         }
 
@@ -44,7 +51,9 @@ namespace Guildmaster
                 case StatType.HP: return hp;
                 case StatType.Mana: return mana;
                 case StatType.Attack: return attack;
+                case StatType.MagicPower: return magicPower;
                 case StatType.Defense: return defense;
+                case StatType.Speed: return speed;
                 case StatType.Crit: return crit;
                 default: return 0;
             }
@@ -52,7 +61,7 @@ namespace Guildmaster
 
         public override string ToString()
         {
-            return $"HP {hp}, MP {mana}, ATK {attack}, DEF {defense}, CRIT {crit}";
+            return $"HP {hp}, MP {mana}, ATK {attack}, MAG {magicPower}, DEF {defense}, SPD {speed}, CRIT {crit}";
         }
     }
 }

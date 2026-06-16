@@ -21,7 +21,7 @@ namespace Guildmaster
         [Tooltip("Item level — combines with material to drive base stat magnitude.")]
         public int itemLevel = 1;
 
-        public StatBlock baseStats = new StatBlock(0, 0, 5, 0, 0);
+        public StatBlock baseStats = new StatBlock(0, 0, 5, 0, 0, 0, 0);
 
         [Header("Special effect (LIGHT layer — ~20% of items carry one)")]
         public SpecialEffectCategory specialEffect = SpecialEffectCategory.None;
