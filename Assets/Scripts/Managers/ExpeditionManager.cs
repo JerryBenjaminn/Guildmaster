@@ -83,7 +83,15 @@ namespace Guildmaster
             int seed = unchecked(Environment.TickCount ^ Guid.NewGuid().GetHashCode());
             var rng = new System.Random(seed);
 
-            var outcome = CombatResolver.Resolve(teamPower, dungeon, tier, _balance, teamMemberIds, rng);
+            // Death-save survival modifier (Infirmary/Priest) is a zero-sum hook
+            // until its task; passes 0 today.
+            var outcome = CombatResolver.Resolve(teamPower, dungeon, tier, _balance, teamMemberIds, rng, 0f);
+
+            // D8: team Speed shortens the real-time duration, hard-capped. Computed
+            // at send-time; the locked outcome (D3) is unaffected by Speed.
+            long baseDuration = tier != null ? tier.DurationSeconds : 0;
+            int teamSpeed = ComputeTeamSpeed(teamMemberIds);
+            long effectiveDuration = ExpeditionTiming.EffectiveDurationSeconds(baseDuration, teamSpeed, _balance);
 
             var expedition = new Expedition
             {
@@ -91,7 +99,7 @@ namespace Guildmaster
                 dungeonId = dungeonId,
                 teamMemberIds = new List<string>(teamMemberIds),
                 sendTimeTicksUtc = DateTime.UtcNow.Ticks,
-                durationSeconds = tier != null ? tier.DurationSeconds : 0,
+                durationSeconds = effectiveDuration,
                 collected = false,
                 outcome = outcome,
             };
@@ -137,21 +145,21 @@ namespace Guildmaster
                 if (outcome.deadMemberIds.Contains(id))
                 {
                     a.status = AdventurerStatus.DeadPending; // awaits legacy/class choice
+                    continue;                                // the dead don't gain XP
                 }
-                else if (outcome.injuredMemberIds.Contains(id))
-                {
-                    a.status = AdventurerStatus.Injured;
-                    // Severity->band mapping is a combat-resolve concern (task 03);
-                    // placeholder Minor for now.
-                    a.injurySeverity = InjurySeverity.Minor;
-                    if (outcome.success) GrantXp(adv, a, outcome.xpReward);
-                }
+
+                var injury = outcome.injuries.Find(m => m.memberId == id);
+                if (injury != null) ApplyInjury(a, injury.severity);
                 else
                 {
                     a.status = AdventurerStatus.Healthy;
                     a.injurySeverity = InjurySeverity.None;
-                    if (outcome.success) GrantXp(adv, a, outcome.xpReward);
+                    a.injuryHealAtTicksUtc = 0;
                 }
+
+                // XP is band-scaled (even a Failure grants a little); grant to all
+                // survivors, injured or not.
+                GrantXp(adv, a, outcome.xpReward);
             }
 
             _current.activeExpeditions.Remove(exp);
@@ -177,6 +185,27 @@ namespace Guildmaster
                 if (a != null) total += CombatResolver.Power(a.stats, _balance);
             }
             return total;
+        }
+
+        private int ComputeTeamSpeed(IReadOnlyList<string> teamMemberIds)
+        {
+            int total = 0;
+            foreach (var id in teamMemberIds)
+            {
+                var a = _current.roster.Find(r => r.id == id);
+                if (a != null) total += a.stats.speed;
+            }
+            return total;
+        }
+
+        // Apply an injury with its severity and a real-time recovery deadline
+        // (no offline cap, D2). Recovery is processed by AdventurerManager.
+        private void ApplyInjury(Adventurer a, InjurySeverity severity)
+        {
+            a.status = AdventurerStatus.Injured;
+            a.injurySeverity = severity;
+            long recoverySeconds = _balance != null ? _balance.RecoverySeconds(severity) : 0;
+            a.injuryHealAtTicksUtc = DateTime.UtcNow.Ticks + TimeSpan.FromSeconds(recoverySeconds).Ticks;
         }
     }
 }

@@ -244,5 +244,38 @@ namespace Guildmaster
             if (_data == null) return;
             foreach (var a in _data.roster) RecalculateStats(a);
         }
+
+        // ---- Injury recovery (real-time, no offline cap — D2) ----
+
+        /// <summary>
+        /// Heal any injured adventurer whose recovery deadline has passed (wall-clock,
+        /// so offline recoveries apply on load). Returns the number recovered so the
+        /// caller can refresh UI only when something changed. Poll-light: a linear
+        /// scan with no allocations.
+        /// </summary>
+        public int ProcessInjuryRecovery(long nowTicksUtc)
+        {
+            if (_data == null) return 0;
+            int recovered = 0;
+            foreach (var a in _data.roster)
+            {
+                if (a.status != AdventurerStatus.Injured) continue;
+                if (a.injuryHealAtTicksUtc <= 0 || nowTicksUtc < a.injuryHealAtTicksUtc) continue;
+
+                a.status = AdventurerStatus.Healthy;
+                a.injurySeverity = InjurySeverity.None;
+                a.injuryHealAtTicksUtc = 0;
+                recovered++;
+            }
+            return recovered;
+        }
+
+        /// <summary>Seconds until an injured adventurer recovers (0 if not injured / already due).</summary>
+        public double RecoverySecondsRemaining(Adventurer a, long nowTicksUtc)
+        {
+            if (a == null || a.status != AdventurerStatus.Injured || a.injuryHealAtTicksUtc <= 0) return 0;
+            long remaining = a.injuryHealAtTicksUtc - nowTicksUtc;
+            return remaining <= 0 ? 0 : System.TimeSpan.FromTicks(remaining).TotalSeconds;
+        }
     }
 }

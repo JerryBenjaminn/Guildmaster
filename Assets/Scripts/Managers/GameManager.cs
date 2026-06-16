@@ -56,8 +56,27 @@ namespace Guildmaster
             ProcessOffline();
             GrantStartingGoldIfNeeded();
 
+            // Heal any injuries whose real-time recovery elapsed while away (D2: no
+            // offline cap on recovery).
+            AdventurerManager.Instance.ProcessInjuryRecovery(DateTime.UtcNow.Ticks);
+
             UIManager.Instance.BuildShell();
             UIManager.Instance.Refresh();
+
+            // Poll-light recovery check (not per-frame): coarse interval, refreshes
+            // UI only when something actually heals.
+            InvokeRepeating(nameof(RecoveryTick), RecoveryTickInterval, RecoveryTickInterval);
+        }
+
+        // Polling cadence for injury recovery — a UI freshness interval, not a
+        // balance value.
+        private const float RecoveryTickInterval = 5f;
+
+        private void RecoveryTick()
+        {
+            if (AdventurerManager.Instance == null) return;
+            int healed = AdventurerManager.Instance.ProcessInjuryRecovery(DateTime.UtcNow.Ticks);
+            if (healed > 0 && UIManager.Instance != null) UIManager.Instance.Refresh();
         }
 
         /// <summary>
