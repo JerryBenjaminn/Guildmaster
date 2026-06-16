@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -174,12 +173,12 @@ namespace Guildmaster.Tests
             WireManagers(balance, current, new PersistentData());
 
             var a = _adv.CreateAdventurer("adventurer", 1, "Fam");
-            long now = DateTime.UtcNow.Ticks;
+            long now = System.DateTime.UtcNow.Ticks;
 
             // Injury whose recovery elapsed while away (offline) -> heals on process.
             a.status = AdventurerStatus.Injured;
             a.injurySeverity = InjurySeverity.Major;
-            a.injuryHealAtTicksUtc = now - TimeSpan.FromHours(1).Ticks;
+            a.injuryHealAtTicksUtc = now - System.TimeSpan.FromHours(1).Ticks;
             Assert.AreEqual(1, _adv.ProcessInjuryRecovery(now));
             Assert.AreEqual(AdventurerStatus.Healthy, a.status);
             Assert.AreEqual(InjurySeverity.None, a.injurySeverity);
@@ -187,7 +186,7 @@ namespace Guildmaster.Tests
             // Not-yet-due injury stays injured.
             a.status = AdventurerStatus.Injured;
             a.injurySeverity = InjurySeverity.Minor;
-            a.injuryHealAtTicksUtc = now + TimeSpan.FromHours(1).Ticks;
+            a.injuryHealAtTicksUtc = now + System.TimeSpan.FromHours(1).Ticks;
             Assert.AreEqual(0, _adv.ProcessInjuryRecovery(now));
             Assert.AreEqual(AdventurerStatus.Injured, a.status);
 
