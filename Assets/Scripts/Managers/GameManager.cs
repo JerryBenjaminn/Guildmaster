@@ -80,7 +80,7 @@ namespace Guildmaster
 
             GuildManager.Instance.Bind(Persistent);
             LegacyManager.Instance.Bind(Legacy);
-            AdventurerManager.Instance.Bind(Current);
+            AdventurerManager.Instance.Initialize(Balance, Current);
             ExpeditionManager.Instance.Initialize(Balance, Current);
         }
 
@@ -96,7 +96,7 @@ namespace Guildmaster
         public void NewGame()
         {
             Current = new CurrentData();
-            AdventurerManager.Instance.Bind(Current);
+            AdventurerManager.Instance.Initialize(Balance, Current);
             ExpeditionManager.Instance.Initialize(Balance, Current);
             SaveSystem.Save(SaveSystem.CurrentFile, Current);
         }

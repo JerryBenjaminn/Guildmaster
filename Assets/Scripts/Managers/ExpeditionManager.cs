@@ -61,6 +61,22 @@ namespace Guildmaster
                 return null;
             }
 
+            // Deploy guard (Task02 §2): only Healthy adventurers can be sent.
+            foreach (var id in teamMemberIds)
+            {
+                var a = _current.roster.Find(r => r.id == id);
+                if (a == null)
+                {
+                    Debug.LogError($"[ExpeditionManager] Team member '{id}' not in roster.");
+                    return null;
+                }
+                if (!AdventurerStateMachine.CanDeploy(a.status))
+                {
+                    Debug.LogError($"[ExpeditionManager] '{a.displayName}' cannot deploy (status {a.status}).");
+                    return null;
+                }
+            }
+
             float teamPower = ComputeTeamPower(teamMemberIds);
 
             // Seeded RNG so the locked roll is reproducible and self-contained.
@@ -112,6 +128,7 @@ namespace Guildmaster
                 GuildManager.Instance.AddGold(outcome.goldReward);
             }
 
+            var adv = AdventurerManager.Instance;
             foreach (var id in exp.teamMemberIds)
             {
                 var a = _current.roster.Find(r => r.id == id);
@@ -124,18 +141,31 @@ namespace Guildmaster
                 else if (outcome.injuredMemberIds.Contains(id))
                 {
                     a.status = AdventurerStatus.Injured;
-                    if (outcome.success) a.xp += outcome.xpReward;
+                    // Severity->band mapping is a combat-resolve concern (task 03);
+                    // placeholder Minor for now.
+                    a.injurySeverity = InjurySeverity.Minor;
+                    if (outcome.success) GrantXp(adv, a, outcome.xpReward);
                 }
                 else
                 {
                     a.status = AdventurerStatus.Healthy;
-                    if (outcome.success) a.xp += outcome.xpReward;
+                    a.injurySeverity = InjurySeverity.None;
+                    if (outcome.success) GrantXp(adv, a, outcome.xpReward);
                 }
             }
 
             _current.activeExpeditions.Remove(exp);
             OnExpeditionCollected?.Invoke(exp, outcome);
             return outcome;
+        }
+
+        // Route XP through AdventurerManager so level-ups happen; fall back to a
+        // direct add when no manager is present (e.g. isolated unit tests).
+        private static void GrantXp(AdventurerManager adv, Adventurer a, int xp)
+        {
+            if (xp <= 0) return;
+            if (adv != null) adv.AddXp(a, xp);
+            else a.xp += xp;
         }
 
         private float ComputeTeamPower(IReadOnlyList<string> teamMemberIds)

@@ -31,6 +31,9 @@ namespace Guildmaster
 
         public int CurrentGeneration => _data.currentGeneration;
 
+        /// <summary>Accumulated bloodline bonuses (read by StatCalculator). Null until bound.</summary>
+        public IReadOnlyList<BloodlineBonus> BloodlineBonuses => _data != null ? _data.bloodlineBonuses : null;
+
         public float GetBloodlineBonus(StatType stat)
         {
             var b = _data.bloodlineBonuses.Find(x => x.statType == stat);
@@ -72,7 +75,7 @@ namespace Guildmaster
             result.bloodlineBonusAfter = GetBloodlineBonus(StatType.Attack);
 
             // Items: scale to inheritable pool (D7).
-            foreach (var itemId in dead.equippedItemIds)
+            foreach (var itemId in dead.equipment.AllItemIds())
             {
                 _data.inheritedItemPoolIds.Add(itemId);
                 result.inheritedItemIds.Add(itemId);
