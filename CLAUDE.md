@@ -89,6 +89,7 @@ These were debated and decided. Do not reopen without explicit instruction.
 | D5 | **Combat = auto-resolve (calculation)** | MVP uses GDD "Option A": sum team power, compare to dungeon, roll. NO visual battler in MVP (deferred). |
 | D6 | **No monetization in MVP** | Ship a free, clean MVP. Validate retention (D1/D7 return) BEFORE adding any cosmetics/battle pass. Do not build IAP/ads yet. |
 | D7 | **Inheritance anti-snowball** | Items scale to ~30% of original level on inherit. Bloodline bonuses cap at +20% per stat. Inherited abilities give utility/synergy, not raw power. Target: Gen 10 ≈ +40% stronger than Gen 1, never invincible. |
+| D8 | **Speed reduces expedition time (capped)** | Team Speed (summed) reduces an expedition's real-time duration by a factor, **hard-capped at ~25–30% max reduction** regardless of how high Speed gets. Speed does NOT affect combat outcome — it's a time/economy stat (rewards active play, aids retention, never punishes absence). Must be a desirable specialization, not a universal must-have: tune class stat blocks so Speed is concentrated in Rogue/Ranger archetypes, scarce on tanks. Cap and factor live in BalanceConfig (tunable). |
 
 ---
 
