@@ -37,6 +37,25 @@ felt distinction (Jerry's guard: a clean win must not feel like a costly one).
   - **Catastrophe** — lost badly. No rewards. Death-save per member; survivors
     take Critical injuries.
 
+**Formula → band junction (unambiguous).** Given `successChance` (clamped
+5–95%) and a uniform roll `r ∈ [0, 1)`:
+
+```
+if r < successChance:                       # VICTORY
+    margin = successChance - r              # how comfortably we passed
+    if   margin >= flawlessMargin:  band = Flawless
+    elif margin <= closeCallMargin: band = CloseCall
+    else:                           band = Success
+else:                                       # DEFEAT  (r >= successChance)
+    miss = r - successChance                # how badly we failed
+    if   miss >= catastropheMargin: band = Catastrophe
+    else:                           band = Failure
+```
+
+So a **successful roll always lands in one of the three victory bands** (chosen
+by margin of victory), and a **failed roll always in one of the two defeat
+bands** (chosen by margin of failure). `success == (r < successChance)`.
+
 > This supersedes the Task 01 band rule where CloseCall was a *failed* roll.
 > CloseCall is now the marginal **victory** band.
 
@@ -147,11 +166,25 @@ change a locked decision (D1–D8) — flag instead.
 > set) or **SEED** (a feel value to tune).
 
 **D8 timing**
-- `speedTimeReductionPerPoint = 0.0025` — **SEED**. With the retuned stats a
-  4-member Rogue/Ranger team lands ~15–20% early-game; the cap is only neared by
-  high-level all-fast stacking (sacrificing power/diversity/survivability).
+- `speedTimeReductionPerPoint = 0.0025` — **SEED**.
 - `speedTimeReductionCap = 0.30` — **FRAME** (D8 says ~25–30%). Ceiling for the
   obsessive, not the normal state.
+
+  Worked examples (`reduction = min(cap, ΣteamSpeed × 0.0025)`, L1 unless noted):
+
+  | Team | Σ Speed | Reduction |
+  |------|---------|-----------|
+  | Solo Warrior (slow) | 5 | ~1.3% |
+  | Balanced 4: Warrior + Priest + Mage + Berserker | 29 | ~7.3% |
+  | Tank-heavy 4: Warrior + Warrior + Priest + Mage | 24 | ~6.0% |
+  | **Fast 4: Rogue + Rogue + Ranger + Ranger** | 60 | **~15%** |
+  | Extreme: 4× Rogue @ L10 (34 each) | 136 | **30% (capped)** |
+
+  This shows the intended spread: a normal/balanced team sits at a **low ~5–9%
+  baseline** (small or all-slow teams dip to ~1–5%), a dedicated fast team earns
+  ~15%, and only high-level all-fast stacking — paying in power, survivability,
+  and class diversity — reaches the 30% cap. Speed is a real specialization with
+  a low baseline, not free value everyone gets.
 
 **Band reward multipliers** (index: Flawless, Success, CloseCall, Failure, Catastrophe) — **SEED**
 - gold: `[1.25, 1.0, 0.6, 0.0, 0.0]`
