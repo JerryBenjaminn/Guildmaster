@@ -53,21 +53,40 @@ namespace Guildmaster
         [Tooltip("SEED: success chance = 0.5 + (teamPower - difficulty) * sensitivity, then clamped to [min,max].")]
         public float powerToSuccessSensitivity = 0.01f;
 
-        [Header("Outcome band thresholds (SEED — feel)")]
-        [Tooltip("SEED: on a successful roll, margin above the success threshold beyond this fraction = Flawless, else Success.")]
-        [Range(0f, 1f)] public float flawlessMargin = 0.5f;
-        [Tooltip("SEED: on a failed roll, margin below the success threshold within this fraction = CloseCall, deeper = Failure; far below = Catastrophe.")]
-        [Range(0f, 1f)] public float closeCallMargin = 0.15f;
-        [Tooltip("SEED: failed roll this far (or more) below the threshold = Catastrophe.")]
-        [Range(0f, 1f)] public float catastropheMargin = 0.6f;
+        [Header("Outcome band thresholds (SEED — feel; victory/defeat split, see task-03 doc)")]
+        [Tooltip("SEED: VICTORY margin (successChance - roll) >= this => Flawless.")]
+        [Range(0f, 1f)] public float flawlessMargin = 0.30f;
+        [Tooltip("SEED: VICTORY margin <= this => CloseCall (barely won); otherwise Success.")]
+        [Range(0f, 1f)] public float closeCallMargin = 0.10f;
+        [Tooltip("SEED: DEFEAT margin (roll - successChance) >= this => Catastrophe; otherwise Failure.")]
+        [Range(0f, 1f)] public float catastropheMargin = 0.40f;
 
-        [Header("Injury / death-save (SEED — feel; permadeath logic is a FRAME)")]
-        [Tooltip("SEED: base chance a member is injured on a CloseCall outcome.")]
-        [Range(0f, 1f)] public float injuryChanceCloseCall = 0.5f;
-        [Tooltip("SEED: base chance a member is injured on a Failure outcome.")]
-        [Range(0f, 1f)] public float injuryChanceFailure = 0.75f;
-        [Tooltip("SEED: base death-save success chance on a Catastrophe (failed save = permadeath).")]
+        [Header("Band reward multipliers (SEED). Index order: Flawless, Success, CloseCall, Failure, Catastrophe")]
+        public float[] goldBandMultipliers = { 1.25f, 1.0f, 0.6f, 0.0f, 0.0f };
+        public float[] xpBandMultipliers = { 1.25f, 1.0f, 0.75f, 0.25f, 0.0f };
+
+        [Header("Injury chances per band (SEED — feel; severity-per-band is a RULE)")]
+        [Tooltip("SEED: chance a clean Success victory still causes a Minor injury. Keep low/occasional so Success != CloseCall.")]
+        [Range(0f, 1f)] public float successInjuryChance = 0.10f;
+        [Tooltip("SEED: chance a CloseCall victory causes a Minor injury.")]
+        [Range(0f, 1f)] public float closeCallInjuryChance = 0.75f;
+        [Tooltip("SEED: chance a Failure causes a Major injury.")]
+        [Range(0f, 1f)] public float failureInjuryChance = 1.0f;
+
+        [Header("Death-save (FRAME: permadeath honest; SEED: chance)")]
+        [Tooltip("SEED: base death-save success chance on Catastrophe (failed save = permadeath). Infirmary/Priest modifiers ADD to this later via a zero-sum hook.")]
         [Range(0f, 1f)] public float baseDeathSaveChance = 0.5f;
+
+        [Header("Injury recovery (SEED — CANONICAL; supersedes the old 2h/6h/12h). No offline cap (D2).")]
+        public float minorRecoveryMinutes = 30f;
+        public float majorRecoveryMinutes = 120f;
+        public float criticalRecoveryMinutes = 360f;
+
+        [Header("D8 — Speed reduces expedition time (capped)")]
+        [Tooltip("SEED: fraction of duration removed per point of summed team Speed.")]
+        public float speedTimeReductionPerPoint = 0.0025f;
+        [Tooltip("FRAME (D8 ~25-30%): hard cap on total time reduction regardless of Speed.")]
+        [Range(0f, 1f)] public float speedTimeReductionCap = 0.30f;
 
         [Header("Reward model (SEED — feel; §7 says ~240/hr@10m -> ~120/hr@8h)")]
         [Tooltip("SEED: XP granted per hour of expedition duration on success.")]
@@ -109,6 +128,28 @@ namespace Guildmaster
             if (level < 1) level = 1;
             return Mathf.RoundToInt(xpCurveBase * Mathf.Pow(level, xpCurveExponent));
         }
+
+        public float GoldBandMultiplier(OutcomeBand band) => BandMul(goldBandMultipliers, band);
+        public float XpBandMultiplier(OutcomeBand band) => BandMul(xpBandMultipliers, band);
+
+        private static float BandMul(float[] arr, OutcomeBand band)
+        {
+            int i = (int)band;
+            return (arr != null && i >= 0 && i < arr.Length) ? arr[i] : 0f;
+        }
+
+        public float RecoveryMinutes(InjurySeverity severity)
+        {
+            switch (severity)
+            {
+                case InjurySeverity.Minor: return minorRecoveryMinutes;
+                case InjurySeverity.Major: return majorRecoveryMinutes;
+                case InjurySeverity.Critical: return criticalRecoveryMinutes;
+                default: return 0f;
+            }
+        }
+
+        public long RecoverySeconds(InjurySeverity severity) => (long)(RecoveryMinutes(severity) * 60f);
     }
 
     /// <summary>One idle duration option and its gold/hr (CLAUDE.md §7, UI_SPEC §4.2).</summary>

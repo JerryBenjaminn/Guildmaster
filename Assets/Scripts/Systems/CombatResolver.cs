@@ -41,22 +41,58 @@ namespace Guildmaster
             return Mathf.Clamp(raw, cfg.successChanceMin, cfg.successChanceMax);
         }
 
+        /// <summary>
+        /// Map a (successChance, roll) pair to an outcome band (task-03 semantics).
+        /// A successful roll lands in one of the three VICTORY bands (by margin of
+        /// victory); a failed roll in one of the two DEFEAT bands (by margin of
+        /// failure). See the task-03 doc for the exact junction.
+        /// </summary>
         public static OutcomeBand BandFor(float successChance, float roll, BalanceConfig cfg)
         {
-            // roll in [0,1): success when roll < successChance.
-            if (roll < successChance)
+            if (roll < successChance) // VICTORY
             {
                 float margin = successChance - roll;            // how comfortably we passed
-                return margin >= successChance * cfg.flawlessMargin
-                    ? OutcomeBand.Flawless
-                    : OutcomeBand.Success;
+                if (margin >= cfg.flawlessMargin) return OutcomeBand.Flawless;
+                if (margin <= cfg.closeCallMargin) return OutcomeBand.CloseCall;
+                return OutcomeBand.Success;
             }
-            else
+            else // DEFEAT
             {
                 float miss = roll - successChance;               // how badly we failed
-                if (miss <= cfg.closeCallMargin) return OutcomeBand.CloseCall;
                 if (miss >= cfg.catastropheMargin) return OutcomeBand.Catastrophe;
                 return OutcomeBand.Failure;
+            }
+        }
+
+        /// <summary>The injury severity a given band inflicts on an injured member (a RULE).</summary>
+        public static InjurySeverity SeverityForBand(OutcomeBand band)
+        {
+            switch (band)
+            {
+                case OutcomeBand.Success: return InjurySeverity.Minor;     // occasional, see chance
+                case OutcomeBand.CloseCall: return InjurySeverity.Minor;
+                case OutcomeBand.Failure: return InjurySeverity.Major;
+                case OutcomeBand.Catastrophe: return InjurySeverity.Critical;
+                default: return InjurySeverity.None;                       // Flawless
+            }
+        }
+
+        /// <summary>Pure death-save check: survives when the roll beats the (clamped) chance.</summary>
+        public static bool SurvivesDeathSave(double rollValue, float baseChance, float survivalModifier)
+        {
+            float chance = Mathf.Clamp01(baseChance + survivalModifier);
+            return rollValue < chance;
+        }
+
+        /// <summary>Per-band chance that an injured member is hurt (Flawless never injures).</summary>
+        private static float InjuryChanceForBand(OutcomeBand band, BalanceConfig cfg)
+        {
+            switch (band)
+            {
+                case OutcomeBand.Success: return cfg.successInjuryChance;
+                case OutcomeBand.CloseCall: return cfg.closeCallInjuryChance;
+                case OutcomeBand.Failure: return cfg.failureInjuryChance;
+                default: return 0f; // Flawless none; Catastrophe handled via death-save
             }
         }
 
@@ -70,7 +106,8 @@ namespace Guildmaster
             ExpeditionTier tier,
             BalanceConfig cfg,
             IReadOnlyList<string> teamMemberIds,
-            System.Random rng)
+            System.Random rng,
+            float deathSaveModifier = 0f)
         {
             float difficulty = EffectiveDifficulty(dungeon);
             float chance = SuccessChance(teamPower, difficulty, cfg);
@@ -87,35 +124,41 @@ namespace Guildmaster
                 lootSeed = rng.Next(),
             };
 
-            if (success)
-            {
-                float hours = tier != null ? tier.durationMinutes / 60f : 0f;
-                float goldPerHour = (tier != null ? tier.goldPerHour : 0f) * dungeon.rewardMultiplier;
-                outcome.goldReward = Mathf.RoundToInt(goldPerHour * hours);
-                outcome.xpReward = Mathf.RoundToInt(cfg.xpPerHour * hours);
-            }
+            // Rewards scale by band (gold/xp). Gold also takes the dungeon's
+            // reward multiplier. Item/loot drops are deferred to task 05.
+            float hours = tier != null ? tier.durationMinutes / 60f : 0f;
+            float baseGold = (tier != null ? tier.goldPerHour : 0f) * dungeon.rewardMultiplier * hours;
+            float baseXp = cfg.xpPerHour * hours;
+            outcome.goldReward = Mathf.RoundToInt(baseGold * cfg.GoldBandMultiplier(band));
+            outcome.xpReward = Mathf.RoundToInt(baseXp * cfg.XpBandMultiplier(band));
 
-            // Injury / death rolls per member, gated by band. Permadeath only on a
-            // failed death-save during a Catastrophe (D5 / §5).
-            float injuryChance = band == OutcomeBand.CloseCall ? cfg.injuryChanceCloseCall
-                               : band == OutcomeBand.Failure ? cfg.injuryChanceFailure
-                               : 0f;
+            // Injury / death per member. Catastrophe rolls a death-save (failed =
+            // permadeath, D5/§5; survivor takes a Critical injury). Other bands roll
+            // a per-band injury chance; severity is fixed by band (a rule).
+            InjurySeverity severity = SeverityForBand(band);
+            float injuryChance = InjuryChanceForBand(band, cfg);
 
             foreach (var memberId in teamMemberIds)
             {
                 if (band == OutcomeBand.Catastrophe)
                 {
-                    bool saved = rng.NextDouble() < cfg.baseDeathSaveChance;
-                    if (saved) outcome.injuredMemberIds.Add(memberId);
-                    else outcome.deadMemberIds.Add(memberId);
+                    if (SurvivesDeathSave(rng.NextDouble(), cfg.baseDeathSaveChance, deathSaveModifier))
+                        AddInjury(outcome, memberId, InjurySeverity.Critical);
+                    else
+                        outcome.deadMemberIds.Add(memberId);
                 }
-                else if (injuryChance > 0f && rng.NextDouble() < injuryChance)
+                else if (severity != InjurySeverity.None && injuryChance > 0f && rng.NextDouble() < injuryChance)
                 {
-                    outcome.injuredMemberIds.Add(memberId);
+                    AddInjury(outcome, memberId, severity);
                 }
             }
 
             return outcome;
+        }
+
+        private static void AddInjury(ExpeditionOutcome outcome, string memberId, InjurySeverity severity)
+        {
+            outcome.injuries.Add(new InjuredMember { memberId = memberId, severity = severity });
         }
 
         /// <summary>Dungeon base difficulty plus the power its enemies contribute.</summary>

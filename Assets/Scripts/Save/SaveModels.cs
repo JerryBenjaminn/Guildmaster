@@ -224,7 +224,15 @@ namespace Guildmaster
         public int xpReward;
         public int lootSeed;
 
-        public List<string> injuredMemberIds = new List<string>();
+        // Injuries carry severity per member (Task03). Deaths are id-only.
+        public List<InjuredMember> injuries = new List<InjuredMember>();
         public List<string> deadMemberIds = new List<string>();
+    }
+
+    [Serializable]
+    public class InjuredMember
+    {
+        public string memberId;
+        public InjurySeverity severity;
     }
 }

@@ -26,12 +26,30 @@ MonoBehaviour:
   powerPerSpeed: 0
   powerPerCrit: 1
   powerToSuccessSensitivity: 0.01
-  flawlessMargin: 0.5
-  closeCallMargin: 0.15
-  catastropheMargin: 0.6
-  injuryChanceCloseCall: 0.5
-  injuryChanceFailure: 0.75
+  flawlessMargin: 0.3
+  closeCallMargin: 0.1
+  catastropheMargin: 0.4
+  goldBandMultipliers:
+  - 1.25
+  - 1
+  - 0.6
+  - 0
+  - 0
+  xpBandMultipliers:
+  - 1.25
+  - 1
+  - 0.75
+  - 0.25
+  - 0
+  successInjuryChance: 0.1
+  closeCallInjuryChance: 0.75
+  failureInjuryChance: 1
   baseDeathSaveChance: 0.5
+  minorRecoveryMinutes: 30
+  majorRecoveryMinutes: 120
+  criticalRecoveryMinutes: 360
+  speedTimeReductionPerPoint: 0.0025
+  speedTimeReductionCap: 0.3
   xpPerHour: 60
   expeditionTiers:
   - displayName: Quick
