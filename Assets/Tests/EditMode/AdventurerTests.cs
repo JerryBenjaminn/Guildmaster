@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -161,6 +162,34 @@ namespace Guildmaster.Tests
             Assert.IsNull(_adv.TryRecruit());      // 50 < 100, blocked
             Assert.AreEqual(1, _adv.LivingCount());
             Assert.AreEqual(50, _guild.TotalGold);
+
+            Object.DestroyImmediate(balance);
+        }
+
+        [Test]
+        public void InjuryRecovery_HealsWhenDue_IncludingOffline()
+        {
+            var balance = ScriptableObject.CreateInstance<BalanceConfig>();
+            var current = new CurrentData();
+            WireManagers(balance, current, new PersistentData());
+
+            var a = _adv.CreateAdventurer("adventurer", 1, "Fam");
+            long now = DateTime.UtcNow.Ticks;
+
+            // Injury whose recovery elapsed while away (offline) -> heals on process.
+            a.status = AdventurerStatus.Injured;
+            a.injurySeverity = InjurySeverity.Major;
+            a.injuryHealAtTicksUtc = now - TimeSpan.FromHours(1).Ticks;
+            Assert.AreEqual(1, _adv.ProcessInjuryRecovery(now));
+            Assert.AreEqual(AdventurerStatus.Healthy, a.status);
+            Assert.AreEqual(InjurySeverity.None, a.injurySeverity);
+
+            // Not-yet-due injury stays injured.
+            a.status = AdventurerStatus.Injured;
+            a.injurySeverity = InjurySeverity.Minor;
+            a.injuryHealAtTicksUtc = now + TimeSpan.FromHours(1).Ticks;
+            Assert.AreEqual(0, _adv.ProcessInjuryRecovery(now));
+            Assert.AreEqual(AdventurerStatus.Injured, a.status);
 
             Object.DestroyImmediate(balance);
         }
