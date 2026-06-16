@@ -28,6 +28,10 @@ namespace Guildmaster
         public long protectedGold = 0;
         public long atRiskGold = 0;
 
+        // One-time starting-gold grant flag. Defaults false, so an existing save
+        // that predates the field also receives the grant once on next load.
+        public bool startingGrantGiven = false;
+
         public List<FacilityState> facilities = new List<FacilityState>();
         public List<TalentState> talents = new List<TalentState>();
         public int talentPoints = 0;

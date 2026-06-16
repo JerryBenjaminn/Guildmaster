@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Guildmaster
@@ -22,6 +23,19 @@ namespace Guildmaster
         private const long DebugDurationSeconds = 5;
         private const string DebugStubDungeonId = "stub_dungeon";
 
+        // The stub dungeon lives under an Editor/ folder so it CANNOT ship in a
+        // build; it isn't in Resources, so we load it via AssetDatabase (editor
+        // only) and register it into ContentDatabase on demand.
+        private const string DebugStubDungeonAssetPath = "Assets/Editor/DevTest/Dungeon_StubTest.asset";
+
+        private void EnsureStubDungeonRegistered()
+        {
+            if (ContentDatabase.GetDungeon(DebugStubDungeonId) != null) return;
+            var d = AssetDatabase.LoadAssetAtPath<DungeonData>(DebugStubDungeonAssetPath);
+            if (d != null) ContentDatabase.RegisterDungeon(d);
+            else Debug.LogWarning($"[DEBUG] Stub dungeon asset not found at {DebugStubDungeonAssetPath}.");
+        }
+
         [ContextMenu("DEBUG ▸ Send stub expedition (up to 4 Healthy)")]
         private void DebugSendStubExpedition()
         {
@@ -30,6 +44,8 @@ namespace Guildmaster
                 Debug.LogWarning("[DEBUG] Enter Play mode first (managers not initialized).");
                 return;
             }
+
+            EnsureStubDungeonRegistered();
 
             var team = new List<string>();
             foreach (var a in _current.roster)

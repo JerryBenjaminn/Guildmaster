@@ -83,6 +83,8 @@ namespace Guildmaster
         };
 
         [Header("Roster (SEED — feel; cap is a frame-ish design number)")]
+        [Tooltip("SEED: one-time gold granted to a brand-new guild so the first recruits are affordable.")]
+        public long startingGold = 300;
         [Tooltip("SEED: gold cost to recruit a new blank-slate Gen-1 adventurer.")]
         public int recruitCost = 100;
         [Tooltip("SEED/FRAME: roster slots before any Barracks upgrades.")]

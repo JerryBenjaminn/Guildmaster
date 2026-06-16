@@ -54,9 +54,23 @@ namespace Guildmaster
 
             LoadGame();
             ProcessOffline();
+            GrantStartingGoldIfNeeded();
 
             UIManager.Instance.BuildShell();
             UIManager.Instance.Refresh();
+        }
+
+        /// <summary>
+        /// One-time starting stipend for a new guild so the first recruits are
+        /// affordable. Granted to protected savings (not the at-risk pool, D4) and
+        /// flagged so it never repeats. Amount is a tunable seed in BalanceConfig.
+        /// </summary>
+        private void GrantStartingGoldIfNeeded()
+        {
+            if (Persistent == null || Persistent.startingGrantGiven) return;
+            Persistent.protectedGold += Balance.startingGold;
+            Persistent.startingGrantGiven = true;
+            SaveGame(); // persist immediately so the flag survives an app kill
         }
 
         private BalanceConfig LoadBalance()

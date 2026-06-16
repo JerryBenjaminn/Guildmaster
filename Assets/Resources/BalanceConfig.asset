@@ -49,6 +49,7 @@ MonoBehaviour:
   - displayName: Overnight
     durationMinutes: 720
     goldPerHour: 100
+  startingGold: 300
   recruitCost: 100
   baseRosterCap: 5
   rosterSlotsPerBarracksLevel: 2
