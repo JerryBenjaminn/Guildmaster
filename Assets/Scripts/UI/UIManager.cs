@@ -35,6 +35,9 @@ namespace Guildmaster
         private TextMeshProUGUI _overlayTitle;
         private TextMeshProUGUI _guildSummaryText;
 
+        private RosterView _rosterView;
+        private AdventurerDetailOverlay _detailOverlay;
+
         private bool _built;
 
         // Reference resolution: portrait-primary (UI_SPEC §6).
@@ -52,12 +55,16 @@ namespace Guildmaster
             if (_built) return;
             _built = true;
 
+            _rosterView = new RosterView();
+            _detailOverlay = new AdventurerDetailOverlay();
+
             EnsureEventSystem();
             BuildCanvas();
             BuildTopStrip();
             BuildContentArea();
             BuildTabBar();
             BuildOverlayLayer();
+            _detailOverlay.Build(_canvas.transform);
 
             ShowTab(GameTab.Guild); // app opens on Guild home (UI_SPEC §3 / §5)
         }
@@ -132,15 +139,23 @@ namespace Guildmaster
             foreach (GameTab tab in System.Enum.GetValues(typeof(GameTab)))
             {
                 var panel = UIFactory.CreateStretch(content, $"Panel_{tab}");
-                var title = UIFactory.CreateText(panel, "Title", tab.ToString(), 64f);
-                UIFactory.Stretch((RectTransform)title.transform);
 
-                if (tab == GameTab.Guild)
+                if (tab == GameTab.Roster)
                 {
-                    title.alignment = TextAlignmentOptions.Top;
-                    _guildSummaryText = UIFactory.CreateText(panel, "Summary",
-                        "Guild home — completed expeditions appear here.", 32f, TextAlignmentOptions.Center);
-                    UIFactory.Stretch((RectTransform)_guildSummaryText.transform);
+                    _rosterView.Build(panel); // real roster UI (Task02 §4)
+                }
+                else
+                {
+                    var title = UIFactory.CreateText(panel, "Title", tab.ToString(), 64f);
+                    UIFactory.Stretch((RectTransform)title.transform);
+
+                    if (tab == GameTab.Guild)
+                    {
+                        title.alignment = TextAlignmentOptions.Top;
+                        _guildSummaryText = UIFactory.CreateText(panel, "Summary",
+                            "Guild home — completed expeditions appear here.", 32f, TextAlignmentOptions.Center);
+                        UIFactory.Stretch((RectTransform)_guildSummaryText.transform);
+                    }
                 }
 
                 _tabPanels[tab] = panel;
@@ -217,6 +232,12 @@ namespace Guildmaster
             }
         }
 
+        /// <summary>Open the Adventurer Detail overlay for a roster member (UI_SPEC §4.1).</summary>
+        public void ShowAdventurerDetail(string adventurerId)
+        {
+            _detailOverlay?.Show(adventurerId);
+        }
+
         public void ShowOverlay(string title)
         {
             if (_overlayTitle != null) _overlayTitle.text = title;
@@ -247,6 +268,8 @@ namespace Guildmaster
                 _guildSummaryText.text =
                     $"Completed expeditions: {completed}\nHealthy adventurers: {healthy}";
             }
+
+            _rosterView?.Refresh();
         }
 
         private int CountCompletedExpeditions()
