@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -95,7 +96,12 @@ namespace Guildmaster
             var cls = ContentDatabase.GetClass(a.classId);
             _name.text = a.displayName;
             _name.color = UIFactory.StatusColor(a.status);
-            string statusStr = a.status == AdventurerStatus.Injured ? $"{a.status} ({a.injurySeverity})" : a.status.ToString();
+            string statusStr = a.status.ToString();
+            if (a.status == AdventurerStatus.Injured)
+            {
+                double secs = adv.RecoverySecondsRemaining(a, DateTime.UtcNow.Ticks);
+                statusStr = $"{a.status} ({a.injurySeverity}) — heals in {FormatDuration(secs)}";
+            }
             _sub.text = $"{(cls != null ? cls.displayName : a.classId)}  •  Gen {a.generation}  •  {statusStr}";
 
             var s = a.stats;
@@ -136,6 +142,15 @@ namespace Guildmaster
                 sb.Append(b.statType).Append(" +").Append(Mathf.RoundToInt(b.fraction * 100f)).Append('%');
             }
             return sb.ToString();
+        }
+
+        private static string FormatDuration(double seconds)
+        {
+            if (seconds <= 0) return "moments";
+            var t = TimeSpan.FromSeconds(seconds);
+            if (t.TotalHours >= 1) return $"{(int)t.TotalHours}h {t.Minutes}m";
+            if (t.TotalMinutes >= 1) return $"{t.Minutes}m {t.Seconds}s";
+            return $"{t.Seconds}s";
         }
 
         private static string ItemName(string itemId)
