@@ -60,7 +60,7 @@ namespace Guildmaster.Tests
                 displayName = "Bron",
                 classId = "warrior",
                 level = 4,
-                stats = new StatBlock(140, 0, 18, 16, 8),
+                stats = new StatBlock(140, 0, 18, 0, 16, 0, 8),
                 status = AdventurerStatus.OnExpedition,
             });
             var exp = new Expedition

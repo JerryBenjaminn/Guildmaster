@@ -33,7 +33,7 @@ namespace Guildmaster.Tests
             {
                 id = "hero1",
                 displayName = "Hero",
-                stats = new StatBlock(200, 0, 40, 30, 10),
+                stats = new StatBlock(200, 0, 40, 0, 30, 0, 10),
                 status = AdventurerStatus.Healthy,
             });
 
