@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d3d7d84b07ea094ab0dd3dab6d0c879, type: 3}
+  m_Name: BalanceConfig
+  m_EditorClassIdentifier: Guildmaster::Guildmaster.BalanceConfig
+  offlineCapHours: 12
+  successChanceMin: 0.05
+  successChanceMax: 0.95
+  itemInheritScale: 0.3
+  bloodlineCapPerStat: 0.2
+  goldAtRiskLossPercent: 0.25
+  powerPerHp: 0.1
+  powerPerMana: 0.1
+  powerPerAttack: 1
+  powerPerMagicPower: 1
+  powerPerDefense: 1
+  powerPerSpeed: 0
+  powerPerCrit: 1
+  powerToSuccessSensitivity: 0.01
+  flawlessMargin: 0.3
+  closeCallMargin: 0.1
+  catastropheMargin: 0.4
+  goldBandMultipliers:
+  - 1.25
+  - 1
+  - 0.6
+  - 0
+  - 0
+  xpBandMultipliers:
+  - 1.25
+  - 1
+  - 0.75
+  - 0.25
+  - 0
+  successInjuryChance: 0.1
+  closeCallInjuryChance: 0.75
+  failureInjuryChance: 1
+  baseDeathSaveChance: 0.5
+  minorRecoveryMinutes: 30
+  majorRecoveryMinutes: 120
+  criticalRecoveryMinutes: 360
+  speedTimeReductionPerPoint: 0.0025
+  speedTimeReductionCap: 0.3
+  xpPerHour: 60
+  expeditionTiers:
+  - displayName: Quick
+    durationMinutes: 10
+    goldPerHour: 240
+  - displayName: Short
+    durationMinutes: 60
+    goldPerHour: 200
+  - displayName: Standard
+    durationMinutes: 240
+    goldPerHour: 160
+  - displayName: Long
+    durationMinutes: 480
+    goldPerHour: 120
+  - displayName: Overnight
+    durationMinutes: 720
+    goldPerHour: 100
+  startingGold: 300
+  recruitCost: 100
+  baseRosterCap: 5
+  rosterSlotsPerBarracksLevel: 2
+  barracksFacilityId: barracks
+  maxLevel: 20
+  xpCurveBase: 100
+  xpCurveExponent: 1.5

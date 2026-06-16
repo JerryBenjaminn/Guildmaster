@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2eef2a7d1849e468d9c868770229df, type: 3}
+  m_Name: Class_Mage
+  m_EditorClassIdentifier:
+  id: mage
+  displayName: Mage
+  description: Glass-cannon spellcaster. Huge magic power and mana, fragile body.
+  tier: 0
+  baseStats:
+    hp: 70
+    mana: 60
+    attack: 5
+    magicPower: 18
+    defense: 6
+    speed: 8
+    crit: 5
+  statsPerLevel:
+    hp: 6
+    mana: 8
+    attack: 1
+    magicPower: 4
+    defense: 1
+    speed: 1
+    crit: 1
+  abilitySlotUnlockLevels:
+  - 1
+  - 3
+  - 6
+  - 10
+  passiveAbilityId:
+  passiveNote: Arcane focus - magic power scales strongly with level.
+  startingGearHint: Staff and robes
+  unlockRequirements: []
+  signatureAbilityIds: []
