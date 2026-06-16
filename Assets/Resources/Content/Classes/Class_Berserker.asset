@@ -23,7 +23,7 @@ MonoBehaviour:
     attack: 17
     magicPower: 0
     defense: 6
-    speed: 11
+    speed: 10
     crit: 8
   statsPerLevel:
     hp: 12
